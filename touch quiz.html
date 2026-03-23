@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#141e30;color:white;text-align:center;">
+
+<h1>🔥 AI Quiz</h1>
+<button onclick="loadQuiz()">Generate Quiz 🤖</button>
+
+<div id="quiz"></div>
+
+<button onclick="recognition.start()">🎤 Speak Answer</button>
+
+<script>
+
+let questions=[];
+let index=0;
+let score=0;
+
+async function loadQuiz(){
+
+let res = await fetch("http://localhost:3000/quiz");
+let data = await res.json();
+
+// extract AI text
+let text = data.choices[0].message.content;
+
+// convert string → JSON (simple hack)
+questions = eval(text);
+
+showQ();
+}
+
+function showQ(){
+
+let q = questions[index];
+
+let html = `<h3>${q.q}</h3>`;
+
+q.options.forEach((o,i)=>{
+html += `<button onclick="answer(${i+1})">${o}</button><br>`;
+});
+
+document.getElementById("quiz").innerHTML = html;
+}
+
+function answer(a){
+
+if(a == questions[index].answer) score++;
+
+index++;
+
+if(index < questions.length){
+showQ();
+}else{
+document.getElementById("quiz").innerHTML = "Score: "+score;
+}
+
+}
+
+// 🎤 VOICE
+const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+
+recognition.onresult = function(e){
+
+let s = e.results[0][0].transcript;
+
+if(s.includes("one")) answer(1);
+if(s.includes("two")) answer(2);
+if(s.includes("three")) answer(3);
+
+};
+
+</script>
+
+</body>
+</html>
